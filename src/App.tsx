@@ -9,9 +9,11 @@ import { Measurements } from "./pages/Measurements";
 import { Preview } from "./pages/Preview";
 import { HowToMeasure } from "./components/guides/HowToMeasure";
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 function App() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/selector" element={<PatternSelector />} />

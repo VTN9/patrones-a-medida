@@ -2,7 +2,8 @@
 // Validadores de medidas corporales y del neceser
 // ============================================================================
 
-import type { ValidationError } from "../types";
+import type { AppMeasurements, PatternMeta, ValidationError } from "../types";
+import { MEASURE_FIELDS } from "../data/patterns";
 
 export function validatePositive(value: unknown, fieldLabel: string): ValidationError | null {
   const num = Number(value);
@@ -32,5 +33,35 @@ export function validateMedidas(_medidas: Record<string, number>, reglas: Array<
     const error = regla();
     if (error) errores.push(error);
   }
+  return errores;
+}
+
+export function validatePatternMeasures(pattern: PatternMeta, measures: AppMeasurements): ValidationError[] {
+  const errores: ValidationError[] = [];
+
+  for (const id of pattern.measures) {
+    if (id === "largoAsa" && Number(measures["tieneAsa"] || 0) !== 1) continue;
+    const field = MEASURE_FIELDS[id];
+    if (!field) continue;
+    const value = Number(measures[id] ?? 0);
+    const min = field.min ?? 1;
+    if (!Number.isFinite(value)) {
+      errores.push({ field: id, message: `El campo "${field.label}" debe ser un número válido.` });
+    } else if (value < min) {
+      errores.push({ field: id, message: min > 0 ? `El campo "${field.label}" es obligatorio y debe ser mayor que 0.` : `El campo "${field.label}" no puede ser negativo.` });
+    }
+  }
+
+  const cintura = Number(measures["cintura"] || 0);
+  const cadera = Number(measures["cadera"] || 0);
+  if (cintura > 0 && cadera > 0 && cintura >= cadera) {
+    errores.push({ field: "cintura", message: "La cintura debe ser menor que la cadera." });
+  }
+
+  const largo = Number(measures["largoTotal"] || 0);
+  if (largo > 0 && largo < 10) {
+    errores.push({ field: "largoTotal", message: "El largo debe ser mayor que 10 cm." });
+  }
+
   return errores;
 }

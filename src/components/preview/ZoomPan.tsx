@@ -45,7 +45,7 @@ export function ZoomPan({ children, className }: ZoomPanProps) {
   } as React.CSSProperties;
 
   return (
-    <div className={`relative w-full overflow-hidden rounded-lg border border-beige bg-cream ${className ?? ""}`} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onWheel={onWheel} style={{ touchAction: "none" }}>
+    <div className={`${isFullscreen ? "fixed inset-0 z-50 bg-cream p-4" : "relative w-full"} overflow-hidden rounded-lg border border-beige bg-cream ${className ?? ""}`} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onWheel={onWheel} style={{ touchAction: "none" }}>
       <div style={containerStyle}>{children}</div>
       <div className="absolute top-3 right-3 flex gap-2 bg-white/90 backdrop-blur p-2 rounded-lg border border-beige shadow-sm z-10">
         <button onClick={zoomOut} className="p-1.5 hover:bg-beige rounded text-slate-600" title="Alejar"><ZoomOut size={16} /></button>

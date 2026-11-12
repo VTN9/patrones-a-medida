@@ -2,25 +2,28 @@
 // Componente: Botones de exportación (PDF, SVG, PNG, copiar, imprimir)
 // ============================================================================
 
-import { useRef } from "react";
+import type { RefObject } from "react";
 import { FileText, Image, Download, Clipboard } from "lucide-react";
 import type { PatternResult } from "../../types";
 import { useExport } from "../../hooks/useExport";
 
 interface ExportButtonsProps {
   result: PatternResult;
-  svgContainer: HTMLElement;
-  svgElement: SVGElement;
+  containerRef: RefObject<HTMLDivElement | null>;
   instructions: string[];
 }
 
-export function ExportButtons({ result, svgContainer, svgElement, instructions }: ExportButtonsProps) {
-  const svgRef = useRef<SVGElement>(svgElement);
+export function ExportButtons({ result, containerRef, instructions }: ExportButtonsProps) {
   const { exportSVG, exportPNG, exportPDF, copyInstructions } = useExport();
 
   const handleDownloadPDF = () => { exportPDF(result, `patron_${result.patternId}.pdf`); };
-  const handleDownloadSVG = () => { exportSVG(svgRef.current!, result, `patron_${result.patternId}.svg`); };
-  const handleDownloadPNG = () => { exportPNG(svgContainer, `patron_${result.patternId}.png`); };
+  const handleDownloadSVG = () => {
+    const svg = containerRef.current?.querySelector("svg");
+    if (svg) exportSVG(svg, result, `patron_${result.patternId}.svg`);
+  };
+  const handleDownloadPNG = () => {
+    if (containerRef.current) exportPNG(containerRef.current, `patron_${result.patternId}.png`);
+  };
 
   return (
     <div className="flex flex-wrap gap-3 justify-center">

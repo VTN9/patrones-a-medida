@@ -2,7 +2,7 @@
 // Página: Selector de patrones
 // ============================================================================
 
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Navbar } from "../components/layout/Navbar";
 import { ProgressBar } from "../components/layout/ProgressBar";
@@ -10,6 +10,7 @@ import { PatternCards } from "../components/patterns/PatternCards";
 import { usePatterns } from "../hooks/usePatterns";
 
 export function PatternSelector() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [category, setCategory] = useState<"ropa" | "neceser">((searchParams.get("categoria") as "ropa" | "neceser") || "neceser");
   const { patternsByCategory } = usePatterns();
@@ -38,7 +39,7 @@ export function PatternSelector() {
               <button onClick={() => setCategory("neceser")} className={`px-5 py-2 rounded-lg text-sm font-medium transition ${category === "neceser" ? "bg-terracotta text-white shadow" : "bg-white border border-beige text-slate-700 hover:bg-beige"}`}>Neceser</button>
             </div>
           </div>
-          <PatternCards patterns={patterns} onStart={(p) => { sessionStorage.setItem("patrones_medida_pattern", JSON.stringify(p)); window.location.href = `/medidas?patron=${p.id}`; }} />
+          <PatternCards patterns={patterns} onStart={(p) => navigate(`/medidas?patron=${p.id}`)} />
         </div>
       </div>
     </div>

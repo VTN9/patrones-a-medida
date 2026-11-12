@@ -3,14 +3,18 @@
 // ============================================================================
 
 import type { PatternResult } from "../../types";
+import { cmToPx } from "../../utils/units";
 
 interface SvgPatternProps {
   result: PatternResult;
   showSeamAllowance: boolean;
+  seamAllowanceCm: number;
 }
 
-export function SvgPattern({ result, showSeamAllowance }: SvgPatternProps) {
-  const { pieces, labels, viewBox } = result;
+export function SvgPattern({ result, showSeamAllowance, seamAllowanceCm }: SvgPatternProps) {
+  const { pieces, viewBox } = result;
+  const marginPx = cmToPx(seamAllowanceCm);
+  const showMargin = showSeamAllowance && seamAllowanceCm > 0;
   return (
     <svg className="svg-canvas w-full h-[600px] md:h-[700px]" viewBox={viewBox} preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Patrón de ${result.patternName}`}>
       <defs>
@@ -22,18 +26,25 @@ export function SvgPattern({ result, showSeamAllowance }: SvgPatternProps) {
       {pieces.map((piece) => (
         <g key={piece.id} className="piece-group">
           <path d={piece.cutPath} fill="none" stroke="#1a1a1a" strokeWidth="2" className="cut-line" />
-          {showSeamAllowance && piece.seamPath && (
-            <path d={piece.seamPath} fill="none" stroke="#7a8b6f" strokeWidth="1" strokeDasharray="4" className="seam-line" />
+          {showMargin && piece.width > marginPx * 2 && piece.height > marginPx * 2 && (
+            <rect
+              x={piece.x + marginPx}
+              y={piece.y + marginPx}
+              width={piece.width - marginPx * 2}
+              height={piece.height - marginPx * 2}
+              fill="none"
+              stroke="#7a8b6f"
+              strokeWidth="1"
+              strokeDasharray="4"
+              className="seam-line"
+            />
           )}
           <text x={piece.labelPosition.x} y={piece.labelPosition.y} textAnchor="middle" fontSize="11" fontWeight="600" fill="#7a8b6f" className="piece-label">{piece.name}</text>
-          <line x1={piece.grainline.x1} y1={piece.grainline.y1} x2={piece.grainline.x2} y2={piece.grainline.y2} stroke="#64748b" strokeWidth="1.5" marker-end="url(#arrow)" className="grainline" />
+          <line x1={piece.grainline.x1} y1={piece.grainline.y1} x2={piece.grainline.x2} y2={piece.grainline.y2} stroke="#64748b" strokeWidth="1.5" markerEnd="url(#arrow)" className="grainline" />
           {piece.notches.map((n, i) => (
             <circle key={i} cx={n.x} cy={n.y} r={3} fill="#c96a4a" stroke="white" strokeWidth="1" />
           ))}
         </g>
-      ))}
-      {labels.map((l, i) => (
-        <text key={i} x={l.x} y={l.y} textAnchor="middle" fontSize="10" fill="#475569" fontWeight="500">{l.text}</text>
       ))}
     </svg>
   );

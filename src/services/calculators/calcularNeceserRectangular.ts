@@ -70,7 +70,7 @@ export class CalcularNeceserRectangular implements PatternCalculator {
       notches,
       grainlines: grainlines as any[],
       seamAllowanceCm: margenCosturaCm,
-      instructions: ["1. Corta las piezas según el patrón generado.", "2. Une el panel frontal con los laterales.", "3. Coloca la cremallera en la abertura superior.", "4. Cierra el fondo y une los laterales.", "5. Remata los bordes con overlock o zigzag.", tieneAsa ? "6. Cosa el asa en los extremos superiores." : "5. Listo, tu neceser está terminado."],
+      instructions: ["Corta las piezas según el patrón generado.", "Une el panel frontal con los laterales.", "Coloca la cremallera en la abertura superior.", "Cierra el fondo y une los laterales.", "Remata los bordes con overlock o zigzag.", tieneAsa ? "Cose el asa en los extremos superiores." : "Plancha y revisa las costuras."],
       materials: ["Tela exterior", "Tela forro (opcional)", `Cremallera de ${largoCremallera.toFixed(0)} cm`, "Hilo", "Tijeras", "Alfileres"],
       fabricQty: `${((largo * 2 + alto * 2 + fondo * 2 + 20) / 100).toFixed(2)} m`,
       zipper: { largo: largoCremallera, tipo: "cremallera estándar" },

@@ -36,7 +36,7 @@ export function PatternCanvas({ result, initialSeamAllowanceCm }: PatternCanvasP
         </div>
       </div>
       <ZoomPan>
-        <SvgPattern result={result} showSeamAllowance={showSeamAllowance} />
+        <SvgPattern result={result} showSeamAllowance={showSeamAllowance} seamAllowanceCm={seamAllowanceCm} />
       </ZoomPan>
     </div>
   );

@@ -10,7 +10,9 @@ import { PatternCanvas } from "../components/preview/PatternCanvas";
 import { ExportButtons } from "../components/export/ExportButtons";
 import { SewingGuide } from "../components/guides/SewingGuide";
 import { getCalculator } from "../services/patternEngine";
-import { getLastPattern, saveLastPattern } from "../services/localStorage/lastPattern";
+import { getPatternById } from "../data/patterns";
+import { getDraft } from "../services/localStorage/draft";
+import { saveLastPattern } from "../services/localStorage/lastPattern";
 import { type PatternResult } from "../types";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 
@@ -21,33 +23,46 @@ export function Preview() {
   const [searchParams] = useSearchParams();
   const patternId = searchParams.get("patron");
   const [result, setResult] = useState<PatternResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const svgRef = useRef<SVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const generatePattern = useCallback(async () => {
-    if (!patternId) return;
+    if (!patternId) { setError("No se indicó ningún patrón."); return; }
+    const pattern = getPatternById(patternId);
+    const calc = pattern ? getCalculator(pattern.calculator) : getCalculator(patternId);
+    if (!calc) { setError("No se encontró la calculadora de este patrón."); return; }
     setLoading(true);
+    setError(null);
     try {
-      await new Promise((r) => setTimeout(r, 400));
-      const calc = getCalculator(patternId);
-      const last = getLastPattern();
-      const storedMeasures = last?.measuresUsed || {};
-      if (!calc) { setLoading(false); return; }
-      const nuevo: PatternResult = calc.calculate(storedMeasures, 1);
+      const draft = getDraft();
+      const measures = draft && draft.patternId === patternId ? draft.measures : {};
+      const margen = Number(measures["margenCostura"]);
+      const margenCm = Number.isFinite(margen) && margen >= 0 ? margen : 1;
+      const nuevo = calc.calculate(measures, margenCm);
       setResult(nuevo);
       saveLastPattern(nuevo);
-    } catch (err) { console.error(err); } finally { setLoading(false); }
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo generar el patrón con esas medidas.");
+    } finally {
+      setLoading(false);
+    }
   }, [patternId]);
 
-  useEffect(() => { generatePattern(); }, [patternId, generatePattern]);
+  useEffect(() => { generatePattern(); }, [generatePattern]);
 
   if (!result) {
     return (
       <div className="min-h-screen bg-cream flex flex-col items-center justify-center py-20 px-6">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-terracotta/10 flex items-center justify-center text-terracotta mb-4"><RefreshCw size={32} /></div>
-          {loading ? <p className="text-slate-600">Generando tu patrón...</p> : <p className="text-slate-600">No se pudo cargar el patrón.</p>}
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-terracotta/10 flex items-center justify-center text-terracotta mx-auto"><RefreshCw size={32} /></div>
+          {loading ? <p className="text-slate-600">Generando tu patrón...</p> : <p className="text-slate-600">{error ?? "No se pudo cargar el patrón."}</p>}
+          {!loading && (
+            <button onClick={() => navigate("/selector")} className="px-5 py-2.5 rounded-lg bg-terracotta text-white text-sm font-medium hover:bg-terracottaDark transition">
+              Volver a los patrones
+            </button>
+          )}
         </div>
       </div>
     );
@@ -72,7 +87,7 @@ export function Preview() {
                   <span className="text-xs text-slate-400 bg-beige px-2 py-1 rounded">SVG · Escala 1:1</span>
                 </div>
                 <div ref={containerRef} className="w-full">
-                  <PatternCanvas result={result} initialSeamAllowanceCm={1} />
+                  <PatternCanvas result={result} initialSeamAllowanceCm={result.seamAllowanceCm} />
                 </div>
                 <div className="mt-4 bg-slate-50 rounded-lg p-4 border border-slate-100">
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Medidas utilizadas</h3>
@@ -80,7 +95,7 @@ export function Preview() {
                     {Object.entries(result.measuresUsed).map(([key, value]) => (
                       <div key={key} className="flex flex-col">
                         <span className="text-slate-500 text-xs uppercase tracking-wider">{key}</span>
-                        <span className="text-slate-800 font-medium">{value.toFixed(1)} cm</span>
+                        <span className="text-slate-800 font-medium">{key === "tieneAsa" ? (value ? "Sí" : "No") : `${value.toFixed(1)} cm`}</span>
                       </div>
                     ))}
                   </div>
@@ -90,7 +105,7 @@ export function Preview() {
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-white rounded-xl border border-beige p-6 shadow-sm sticky top-24">
                 <h2 className="text-lg font-bold text-slate-800 mb-4">Exportar</h2>
-                <ExportButtons result={result} svgContainer={containerRef.current!} svgElement={svgRef.current!} instructions={result.instructions} />
+                <ExportButtons result={result} containerRef={containerRef} instructions={result.instructions} />
               </div>
               <SewingGuide instructions={result.instructions} materials={result.materials} fabricQty={result.fabricQty} />
             </div>
@@ -100,3 +115,5 @@ export function Preview() {
     </div>
   );
 }
+
+export default Preview;

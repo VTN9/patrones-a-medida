@@ -29,7 +29,7 @@ export function MeasureField({ field, value, onChange, error, exampleMode, onFil
         </div>
       ) : (
         <div className="relative">
-          <input type="text" value={value === 0 ? "" : value.toString()} onChange={(e) => onChange(field.id, e.target.value)} placeholder={field.placeholder} className="w-full px-3 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-sage focus:border-transparent outline-none text-sm text-slate-800 transition" disabled={exampleMode} />
+          <input type="text" value={value === 0 && field.min !== 0 ? "" : value.toString()} onChange={(e) => onChange(field.id, e.target.value)} placeholder={field.placeholder} className="w-full px-3 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-sage focus:border-transparent outline-none text-sm text-slate-800 transition" disabled={exampleMode} />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">{field.unit}</span>
           {error && <div className="absolute right-3 top-1/2 -translate-y-1/2 text-terracotta"><CircleAlert size={14} /></div>}
         </div>

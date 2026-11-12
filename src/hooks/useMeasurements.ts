@@ -65,6 +65,7 @@ export function useMeasurements(initialMeasures: AppMeasurements = {}) {
     measures,
     setMeasure,
     errors,
+    setErrors,
     clearErrors,
     runValidation,
     profiles,

@@ -41,7 +41,7 @@ export class CalcularFaldaBase implements PatternCalculator {
       notches,
       grainlines: grainlines as any[],
       seamAllowanceCm: margenCosturaCm,
-      instructions: ["1. Corta la pieza delantera y la trasera del patrón.", "2. Une las piezas por los costados, derecho sobre derecho.", "3. Coloca la cremallera en la costura central trasera o lateral.", "4. Realiza el dobladillo del bajo según el largo deseado.", "5. Termina la cintura con cinturilla o elástico según prefieras."],
+      instructions: ["Corta la pieza delantera y la trasera del patrón.", "Une las piezas por los costados, derecho sobre derecho.", "Coloca la cremallera en la costura central trasera o lateral.", "Realiza el dobladillo del bajo según el largo deseado.", "Termina la cintura con cinturilla o elástico según prefieras."],
       materials: ["Tela principal", "Cremallera (opcional)", "Hilo", "Tijeras", "Alfileres"],
       fabricQty: `${((telaLargoCm * 2 + telaAnchoCm) / 100).toFixed(2)} m`,
       measuresUsed: { cintura, cadera, largo, holgura, margenCostura: margenCosturaCm },

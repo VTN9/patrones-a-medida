@@ -20,7 +20,7 @@ export function Home() {
             imprimir o proyectar.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/selector" className="px-8 py-4 rounded-xl bg-terracotta text-white text-lg font-medium hover:bg-terracottaDark transition shadow-lg flex items-center justify-center gap-2">
+            <Link to="/selector?categoria=ropa" className="px-8 py-4 rounded-xl bg-terracotta text-white text-lg font-medium hover:bg-terracottaDark transition shadow-lg flex items-center justify-center gap-2">
               <Scissors size={20} /> Crear patrón de ropa
             </Link>
             <Link to="/selector?categoria=neceser" className="px-8 py-4 rounded-xl bg-white border border-beige text-slate-800 text-lg font-medium hover:bg-beige transition flex items-center justify-center gap-2">

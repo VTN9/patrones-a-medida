@@ -9,16 +9,17 @@ import { ProgressBar } from "../components/layout/ProgressBar";
 import { MeasurementsForm } from "../components/forms/MeasurementsForm";
 import { useMeasurements } from "../hooks/useMeasurements";
 import { usePatterns } from "../hooks/usePatterns";
-import { MEASURE_FIELDS } from "../data/patterns";
+import { validatePatternMeasures } from "../utils/validators";
+import { saveDraft } from "../services/localStorage/draft";
 import type { PatternMeta } from "../types";
 import { ArrowLeft, Play } from "lucide-react";
 
 export function Measurements() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const patternId = searchParams.get("patron") || sessionStorage.getItem("patrones_medida_pattern");
+  const patternId = searchParams.get("patron");
   const [pattern, setPattern] = useState<PatternMeta | null>(null);
-  const { measures, setMeasure, errors, clearErrors, profiles, loadProfile, createProfile, editProfile, removeProfile } = useMeasurements();
+  const { measures, setMeasure, errors, setErrors, clearErrors, profiles, loadProfile, createProfile, editProfile, removeProfile } = useMeasurements();
   const { patternsByCategory } = usePatterns();
 
   useEffect(() => {
@@ -36,22 +37,10 @@ export function Measurements() {
 
   const handleGenerate = () => {
     if (!pattern) return;
-    const errores: { field: string; message: string }[] = [];
-    for (const id of pattern.measures) {
-      const field = MEASURE_FIELDS[id];
-      const v = measures[id] || 0;
-      if (!field) continue;
-      if (v <= 0) { errores.push({ field: id, message: `El campo "${field.label}" es obligatorio y debe ser mayor que 0.` }); }
-    }
-    if (pattern.measures.includes("cintura") && pattern.measures.includes("cadera")) {
-      const c = measures["cintura"] || 0; const h = measures["cadera"] || 0;
-      if (c > 0 && h > 0 && c >= h) { errores.push({ field: "cintura", message: "La cintura debe ser menor que la cadera." }); }
-    }
-    if (pattern.measures.includes("largoTotal")) {
-      const v = measures["largoTotal"] || 0;
-      if (v > 0 && v < 10) { errores.push({ field: "largoTotal", message: "El largo debe ser mayor que 10 cm." }); }
-    }
-    if (errores.length > 0) { alert(errores.map((e) => e.message).join("\n")); return; }
+    const errores = validatePatternMeasures(pattern, measures);
+    setErrors(errores);
+    if (errores.length > 0) return;
+    saveDraft({ patternId: pattern.id, measures });
     navigate(`/preview?patron=${pattern.id}`);
   };
 
@@ -69,7 +58,7 @@ export function Measurements() {
           </div>
           <MeasurementsForm pattern={pattern} category={pattern.category} measures={measures} setMeasure={setMeasure} errors={errors} clearErrors={clearErrors} profiles={profiles} onLoad={loadProfile} onCreate={(name, cat) => createProfile(name, cat)} onEdit={editProfile} onDelete={removeProfile} />
           <div className="mt-8 flex justify-end">
-            <button onClick={handleGenerate} disabled={errors.length > 0} className="px-8 py-3 rounded-xl bg-sageDark text-white text-lg font-medium hover:bg-sage transition shadow flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"><Play size={20} /> Generar patrón</button>
+            <button onClick={handleGenerate} className="px-8 py-3 rounded-xl bg-sageDark text-white text-lg font-medium hover:bg-sage transition shadow flex items-center gap-2"><Play size={20} /> Generar patrón</button>
           </div>
         </div>
       </div>
