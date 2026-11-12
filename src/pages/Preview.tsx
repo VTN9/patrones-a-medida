@@ -2,7 +2,7 @@
 // Página: Previsualización y exportación del patrón generado
 // ============================================================================
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Navbar } from "../components/layout/Navbar";
 import { ProgressBar } from "../components/layout/ProgressBar";
@@ -18,6 +18,8 @@ import { ArrowLeft, RefreshCw } from "lucide-react";
 
 import "../services/calculators";
 
+const Neceser3D = lazy(() => import("../components/neceser3d/Neceser3D"));
+
 export function Preview() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -26,6 +28,7 @@ export function Preview() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState<"2d" | "3d">("2d");
 
   const generatePattern = useCallback(async () => {
     if (!patternId) { setError("No se indicó ningún patrón."); return; }
@@ -68,6 +71,11 @@ export function Preview() {
     );
   }
 
+  const isNeceser = result.category === "neceser";
+  const show3d = isNeceser && view === "3d";
+  const tabClass = (active: boolean) =>
+    `rounded-md px-3 py-1.5 text-xs font-medium transition ${active ? "bg-white text-terracotta shadow-sm" : "text-slate-500 hover:text-slate-700"}`;
+
   return (
     <div className="min-h-screen bg-cream">
       <Navbar />
@@ -82,13 +90,38 @@ export function Preview() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 space-y-6">
               <div className="bg-white rounded-xl border border-beige p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                   <h2 className="text-lg font-bold text-slate-800">Previsualización</h2>
-                  <span className="text-xs text-slate-400 bg-beige px-2 py-1 rounded">SVG · Escala 1:1</span>
+                  {isNeceser ? (
+                    <div className="flex gap-1 rounded-lg border border-beige bg-cream p-1" role="tablist" aria-label="Vista del neceser">
+                      <button type="button" role="tab" id="tab-2d" aria-controls="panel-2d" aria-selected={view === "2d"} onClick={() => setView("2d")} className={tabClass(view === "2d")}>
+                        Patrón 2D
+                      </button>
+                      <button type="button" role="tab" id="tab-3d" aria-controls="panel-3d" aria-selected={view === "3d"} onClick={() => setView("3d")} className={tabClass(view === "3d")}>
+                        Vista 3D
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400 bg-beige px-2 py-1 rounded">SVG · Escala 1:1</span>
+                  )}
                 </div>
-                <div ref={containerRef} className="w-full">
-                  <PatternCanvas result={result} initialSeamAllowanceCm={result.seamAllowanceCm} />
-                </div>
+                {show3d ? (
+                  <div role="tabpanel" id="panel-3d" aria-labelledby="tab-3d">
+                    <Suspense fallback={<div className="flex h-[420px] items-center justify-center rounded-lg bg-cream text-sm text-slate-500">Cargando vista 3D...</div>}>
+                      <Neceser3D measures={result.measuresUsed} />
+                    </Suspense>
+                  </div>
+                ) : (
+                  <div
+                    ref={containerRef}
+                    className="w-full"
+                    role={isNeceser ? "tabpanel" : undefined}
+                    id={isNeceser ? "panel-2d" : undefined}
+                    aria-labelledby={isNeceser ? "tab-2d" : undefined}
+                  >
+                    <PatternCanvas result={result} initialSeamAllowanceCm={result.seamAllowanceCm} />
+                  </div>
+                )}
                 <div className="mt-4 bg-slate-50 rounded-lg p-4 border border-slate-100">
                   <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Medidas utilizadas</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
@@ -105,7 +138,11 @@ export function Preview() {
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-white rounded-xl border border-beige p-6 shadow-sm sticky top-24">
                 <h2 className="text-lg font-bold text-slate-800 mb-4">Exportar</h2>
-                <ExportButtons result={result} containerRef={containerRef} instructions={result.instructions} />
+                {show3d ? (
+                  <p className="text-sm text-slate-500">Usa el botón «Captura» de la vista 3D para descargar una imagen del modelo.</p>
+                ) : (
+                  <ExportButtons result={result} containerRef={containerRef} instructions={result.instructions} />
+                )}
               </div>
               <SewingGuide instructions={result.instructions} materials={result.materials} fabricQty={result.fabricQty} />
             </div>

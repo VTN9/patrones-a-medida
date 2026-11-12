@@ -22,18 +22,18 @@ export function ProgressBar({ activeStep }: ProgressBarProps) {
   const isCurrent = (id: Step) => id === activeStep;
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-6">
-      <div className="flex items-center gap-2 mb-6">
+    <div className="w-full max-w-3xl mx-auto px-0 sm:px-6">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-3 mb-6">
         {steps.map((step, i) => (
-          <div key={step.id} className="flex items-center gap-2">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition ${isCurrent(step.id) ? "bg-terracotta text-white" : isActive(step.id) ? "bg-sage text-white" : "bg-beige text-slate-500"}`}>
+          <div key={step.id} className="flex items-center gap-1.5 sm:gap-2">
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-bold transition ${isCurrent(step.id) ? "bg-terracotta text-white" : isActive(step.id) ? "bg-sage text-white" : "bg-beige text-slate-500"}`}>
               {step.icon}
             </div>
-            <div className={`text-sm font-medium transition ${isCurrent(step.id) ? "text-terracottaDark" : isActive(step.id) ? "text-sageDark" : "text-slate-400"}`}>
+            <div className={`text-xs sm:text-sm font-medium transition ${isCurrent(step.id) ? "text-terracottaDark" : isActive(step.id) ? "text-sageDark" : "text-slate-400"}`}>
               {step.label}
             </div>
             {i < steps.length - 1 && (
-              <div className={`w-8 h-0.5 ${isActive(step.id) ? "bg-sage" : "bg-beige"}`} />
+              <div className={`w-4 sm:w-8 h-0.5 ${isActive(step.id) ? "bg-sage" : "bg-beige"}`} />
             )}
           </div>
         ))}
