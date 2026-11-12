@@ -19,6 +19,7 @@ import { ArrowLeft, RefreshCw } from "lucide-react";
 import "../services/calculators";
 
 const Neceser3D = lazy(() => import("../components/neceser3d/Neceser3D"));
+const Falda3D = lazy(() => import("../components/falda3d/Falda3D"));
 
 export function Preview() {
   const navigate = useNavigate();
@@ -72,7 +73,9 @@ export function Preview() {
   }
 
   const isNeceser = result.category === "neceser";
-  const show3d = isNeceser && view === "3d";
+  const isFalda = result.patternId === "falda-base";
+  const has3d = isNeceser || isFalda;
+  const show3d = has3d && view === "3d";
   const tabClass = (active: boolean) =>
     `rounded-md px-3 py-1.5 text-xs font-medium transition ${active ? "bg-white text-terracotta shadow-sm" : "text-slate-500 hover:text-slate-700"}`;
 
@@ -92,8 +95,8 @@ export function Preview() {
               <div className="bg-white rounded-xl border border-beige p-6 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                   <h2 className="text-lg font-bold text-slate-800">Previsualización</h2>
-                  {isNeceser ? (
-                    <div className="flex gap-1 rounded-lg border border-beige bg-cream p-1" role="tablist" aria-label="Vista del neceser">
+                  {has3d ? (
+                    <div className="flex gap-1 rounded-lg border border-beige bg-cream p-1" role="tablist" aria-label="Vista del patrón">
                       <button type="button" role="tab" id="tab-2d" aria-controls="panel-2d" aria-selected={view === "2d"} onClick={() => setView("2d")} className={tabClass(view === "2d")}>
                         Patrón 2D
                       </button>
@@ -108,16 +111,16 @@ export function Preview() {
                 {show3d ? (
                   <div role="tabpanel" id="panel-3d" aria-labelledby="tab-3d">
                     <Suspense fallback={<div className="flex h-[420px] items-center justify-center rounded-lg bg-cream text-sm text-slate-500">Cargando vista 3D...</div>}>
-                      <Neceser3D measures={result.measuresUsed} />
+                      {isNeceser ? <Neceser3D measures={result.measuresUsed} /> : <Falda3D measures={result.measuresUsed} />}
                     </Suspense>
                   </div>
                 ) : (
                   <div
                     ref={containerRef}
                     className="w-full"
-                    role={isNeceser ? "tabpanel" : undefined}
-                    id={isNeceser ? "panel-2d" : undefined}
-                    aria-labelledby={isNeceser ? "tab-2d" : undefined}
+                    role={has3d ? "tabpanel" : undefined}
+                    id={has3d ? "panel-2d" : undefined}
+                    aria-labelledby={has3d ? "tab-2d" : undefined}
                   >
                     <PatternCanvas result={result} initialSeamAllowanceCm={result.seamAllowanceCm} />
                   </div>

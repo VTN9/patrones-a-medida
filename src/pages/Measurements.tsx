@@ -15,6 +15,7 @@ import type { PatternMeta } from "../types";
 import { ArrowLeft, Play } from "lucide-react";
 
 const Neceser3D = lazy(() => import("../components/neceser3d/Neceser3D"));
+const Falda3D = lazy(() => import("../components/falda3d/Falda3D"));
 
 export function Measurements() {
   const navigate = useNavigate();
@@ -48,29 +49,31 @@ export function Measurements() {
 
   if (!pattern) return null;
   const isNeceser = pattern.category === "neceser";
+  const isFalda = pattern.id === "falda-base";
+  const has3d = isNeceser || isFalda;
   return (
     <div className="min-h-screen bg-cream">
       <Navbar />
       <div className="py-6 px-6">
-        <div className={isNeceser ? "max-w-6xl mx-auto" : "max-w-5xl mx-auto"}>
+        <div className={has3d ? "max-w-6xl mx-auto" : "max-w-5xl mx-auto"}>
           <ProgressBar activeStep="medidas" />
           <div className="flex items-center gap-3 mb-6">
             <button onClick={() => navigate("/selector")} className="flex items-center gap-2 text-sm text-slate-600 hover:text-terracotta transition"><ArrowLeft size={16} /> Volver a patrones</button>
             <span className="h-4 w-px bg-beige mx-2" />
             <span className="text-sm font-medium text-slate-700">{pattern.name}</span>
           </div>
-          <div className={isNeceser ? "grid grid-cols-1 gap-6 lg:grid-cols-12" : ""}>
-            <div className={isNeceser ? "lg:col-span-7" : ""}>
+          <div className={has3d ? "grid grid-cols-1 gap-6 lg:grid-cols-12" : ""}>
+            <div className={has3d ? "lg:col-span-7" : ""}>
               <MeasurementsForm pattern={pattern} category={pattern.category} measures={measures} setMeasure={setMeasure} errors={errors} clearErrors={clearErrors} profiles={profiles} onLoad={loadProfile} onCreate={(name, cat) => createProfile(name, cat)} onEdit={editProfile} onDelete={removeProfile} />
               <div className="mt-8 flex justify-end">
                 <button onClick={handleGenerate} className="px-8 py-3 rounded-xl bg-sageDark text-white text-lg font-medium hover:bg-sage transition shadow flex items-center gap-2"><Play size={20} /> Generar patrón</button>
               </div>
             </div>
-            {isNeceser && (
+            {has3d && (
               <div className="lg:col-span-5">
                 <div className="lg:sticky lg:top-24">
                   <Suspense fallback={<div className="flex h-[300px] items-center justify-center rounded-xl border border-beige bg-white text-sm text-slate-500">Cargando vista 3D...</div>}>
-                    <Neceser3D measures={measures} compact />
+                    {isNeceser ? <Neceser3D measures={measures} compact /> : <Falda3D measures={measures} compact />}
                   </Suspense>
                 </div>
               </div>
