@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-terracotta: #c0714f;
+  --color-terracottaDark: #a05a3c;
+  --color-sage: #9caf88;
+  --color-sageDark: #6f8759;
+  --color-beige: #e7ded0;
+  --color-cream: #faf6ef;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-slate-800);
+  -webkit-font-smoothing: antialiased;
+}
