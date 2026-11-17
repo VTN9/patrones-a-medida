@@ -3,6 +3,7 @@ import type { PointerEvent } from "react";
 import type { Point } from "../../types/digitizer";
 import { closestPointOnSegment } from "../../services/digitizer/geometry";
 import { eventPoint, fitRect } from "./canvasUtils";
+import { OutlineHandles } from "./OutlineHandles";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
@@ -180,34 +181,19 @@ export function OutlineCanvas({
           dragIndex !== null ? "cursor-grabbing" : "cursor-crosshair"
         }`}
       />
-      {outline.length > 1 && (
-        <div className="pointer-events-none absolute inset-0">
-          {outline.map((point, index) => {
-            const { x, y } = toDisplay(point);
-            const active = dragIndex === index || selectedIndex === index;
-            return (
-              <button
-                key={index}
-                type="button"
-                aria-label={`Punto ${index + 1} del contorno`}
-                aria-pressed={selectedIndex === index}
-                title="Arrastra para mover; doble clic para quitar"
-                onPointerDown={(event) => handleHandlePointerDown(index, event)}
-                onPointerMove={(event) => handleHandlePointerMove(index, event)}
-                onPointerUp={handleHandlePointerUp}
-                onPointerCancel={handleHandlePointerUp}
-                onDoubleClick={() => onRemovePoint(index)}
-                style={{ left: `${(x / CANVAS_WIDTH) * 100}%`, top: `${(y / CANVAS_HEIGHT) * 100}%` }}
-                className={`pointer-events-auto absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 touch-none rounded-full border-2 border-terracotta shadow-sm transition after:absolute after:-inset-2 after:content-[''] focus:outline-none focus:ring-2 focus:ring-terracotta focus:ring-offset-1 ${
-                  active
-                    ? "cursor-grabbing bg-terracotta ring-2 ring-terracotta ring-offset-1"
-                    : "cursor-grab bg-white hover:bg-terracotta/10"
-                }`}
-              />
-            );
-          })}
-        </div>
-      )}
+      <OutlineHandles
+        outline={outline}
+        selectedIndex={selectedIndex}
+        dragIndex={dragIndex}
+        canvasWidth={CANVAS_WIDTH}
+        canvasHeight={CANVAS_HEIGHT}
+        toDisplay={toDisplay}
+        onPointerDown={handleHandlePointerDown}
+        onPointerMove={handleHandlePointerMove}
+        onPointerUp={handleHandlePointerUp}
+        onRemovePoint={onRemovePoint}
+        onSelect={onSelect}
+      />
     </div>
   );
 }

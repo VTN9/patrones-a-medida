@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ScanLine, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, ScanLine, Sparkles } from "lucide-react";
 import type { Calibration, Point } from "../../types/digitizer";
 import { extractOutline } from "../../services/digitizer/contour";
 import { bbox, polygonArea } from "../../services/digitizer/geometry";
+import { useOutlinePointEditor } from "../../hooks/useOutlinePointEditor";
 import { OutlineCanvas } from "./OutlineCanvas";
 import { OutlineControls } from "./OutlineControls";
+import { OutlinePointTools } from "./OutlinePointTools";
 
 interface OutlineStepProps {
   canvas: HTMLCanvasElement;
@@ -25,8 +27,15 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
   const [keepLargest, setKeepLargest] = useState(true);
   const [warning, setWarning] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const autoApplyRef = useRef(false);
+  const { selectedIndex, setSelectedIndex, addPoint, removePoint, clearOutline } = useOutlinePointEditor({
+    outline,
+    setOutline,
+    onClear: () => {
+      autoApplyRef.current = false;
+      setWarning("Contorno borrado. Haz clic dentro de la pieza y vuelve a detectar.");
+    },
+  });
 
   const detect = useCallback(
     async (scroll = false) => {
@@ -78,12 +87,6 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
     void detect(true);
   };
 
-  const removePoint = (index: number) => {
-    if (outline.length <= 3) return;
-    setOutline((previous) => previous.filter((_, pointIndex) => pointIndex !== index));
-    setSelectedIndex(null);
-  };
-
   const areaCm2 = calibration.pxPerCm > 0 ? polygonArea(outline) / calibration.pxPerCm ** 2 : 0;
   const box = bbox(outline);
   const widthCm = box.width / calibration.pxPerCm;
@@ -100,7 +103,8 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
             <h2 className="text-lg font-bold text-slate-800">Detecta el contorno de la pieza</h2>
             <p className="mt-1 text-sm text-slate-600">
               Haz clic dentro de la pieza y pulsa «Detectar contorno». Ajusta la sensibilidad si la
-              línea no se cierra bien. Después, arrastra los puntos blancos para corregir el contorno.
+              línea no se cierra bien. Después, arrastra los puntos o usa «Añadir punto» y «Quitar
+              punto» para corregir el contorno.
             </p>
             <p className="mt-2 text-xs text-slate-500">
               Si el fondo es oscuro, desactiva «Aislar el contorno principal».
@@ -128,10 +132,13 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
           />
         </div>
         {outline.length >= 3 && (
-          <div className="mt-2 space-y-1 text-xs text-slate-500">
-            <p>Arrastra los puntos para moverlos. Haz clic sobre la línea para añadir un punto.</p>
-            <p>Selecciona un punto y pulsa «Quitar punto» para eliminarlo.</p>
-          </div>
+          <OutlinePointTools
+            pointCount={outline.length}
+            selectedIndex={selectedIndex}
+            onAdd={addPoint}
+            onRemove={() => selectedIndex !== null && removePoint(selectedIndex)}
+            onClear={clearOutline}
+          />
         )}
 
         <OutlineControls
@@ -162,14 +169,6 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
             <ArrowLeft size={16} /> Volver
           </button>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => selectedIndex !== null && removePoint(selectedIndex)}
-              disabled={selectedIndex === null || outline.length <= 3}
-              className="flex items-center gap-2 rounded-lg border border-beige bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-beige disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <Trash2 size={16} /> Quitar punto
-            </button>
             <button
               type="button"
               onClick={handleDetect}

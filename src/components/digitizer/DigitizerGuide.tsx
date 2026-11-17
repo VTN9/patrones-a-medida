@@ -15,7 +15,7 @@ const STEPS = [
   },
   {
     title: "Detecta el contorno",
-    text: "Haz clic dentro de la pieza y pulsa «Detectar contorno». Ajusta el umbral, «Cerrar huecos» o «Simplificar»: los cambios se aplican automáticamente. Arrastra los puntos para moverlos, haz clic en la línea para añadir puntos y usa «Quitar punto» para eliminarlos. Si el fondo es oscuro, desactiva «Aislar el contorno principal». Pulsa «Usar contorno».",
+    text: "Haz clic dentro de la pieza y pulsa «Detectar contorno». Ajusta el umbral, «Cerrar huecos» o «Simplificar»: los cambios se aplican automáticamente. Arrastra los puntos para moverlos, usa «Añadir punto» o haz clic en la línea, y «Quitar punto» (o la tecla Supr) para eliminarlos. Si el contorno coge algo que no pertenece, pulsa «Borrar contorno» y vuelve a detectar. Si el fondo es oscuro, desactiva «Aislar el contorno principal». Pulsa «Usar contorno».",
   },
   {
     title: "Revisa y añade la pieza",
