@@ -1,14 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { MouseEvent } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, ScanLine, Sparkles } from "lucide-react";
 import type { Calibration, Point } from "../../types/digitizer";
 import { extractOutline } from "../../services/digitizer/contour";
 import { bbox, polygonArea } from "../../services/digitizer/geometry";
-import { eventPoint, fitRect } from "./canvasUtils";
+import { OutlineCanvas } from "./OutlineCanvas";
 import { OutlineControls } from "./OutlineControls";
-
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 600;
 
 interface OutlineStepProps {
   canvas: HTMLCanvasElement;
@@ -19,7 +15,7 @@ interface OutlineStepProps {
 }
 
 export function OutlineStep({ canvas, calibration, initialOutline, onOutline, onBack }: OutlineStepProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
   const [seed, setSeed] = useState<Point | null>(null);
   const [outline, setOutline] = useState<Point[]>(initialOutline ?? []);
   const [threshold, setThreshold] = useState(128);
@@ -29,56 +25,6 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
   const [keepLargest, setKeepLargest] = useState(true);
   const [warning, setWarning] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const fit = useMemo(() => fitRect(canvas.width, canvas.height, CANVAS_WIDTH, CANVAS_HEIGHT), [canvas]);
-
-  useEffect(() => {
-    const target = canvasRef.current;
-    if (!target) return;
-    const context = target.getContext("2d");
-    if (!context) return;
-    context.fillStyle = "#f8f5ef";
-    context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    context.drawImage(canvas, fit.x, fit.y, fit.width, fit.height);
-    if (outline.length > 1) {
-      context.beginPath();
-      outline.forEach((point, index) => {
-        const x = fit.x + (point.x / canvas.width) * fit.width;
-        const y = fit.y + (point.y / canvas.height) * fit.height;
-        if (index === 0) context.moveTo(x, y);
-        else context.lineTo(x, y);
-      });
-      context.closePath();
-      context.fillStyle = "rgba(192, 113, 79, 0.18)";
-      context.fill();
-      context.strokeStyle = "#c0714f";
-      context.lineWidth = 3;
-      context.stroke();
-    }
-    if (seed) {
-      const x = fit.x + (seed.x / canvas.width) * fit.width;
-      const y = fit.y + (seed.y / canvas.height) * fit.height;
-      context.beginPath();
-      context.arc(x, y, 7, 0, Math.PI * 2);
-      context.fillStyle = "#6f8759";
-      context.fill();
-      context.strokeStyle = "#ffffff";
-      context.lineWidth = 2;
-      context.stroke();
-    }
-  }, [canvas, fit, outline, seed]);
-
-  const handleClick = (event: MouseEvent<HTMLCanvasElement>) => {
-    const point = eventPoint(event);
-    if (point.x < fit.x || point.y < fit.y || point.x > fit.x + fit.width || point.y > fit.y + fit.height) {
-      return;
-    }
-    setSeed({
-      x: ((point.x - fit.x) / fit.width) * canvas.width,
-      y: ((point.y - fit.y) / fit.height) * canvas.height,
-    });
-    setOutline([]);
-    setWarning(null);
-  };
 
   const handleDetect = async () => {
     if (!seed) {
@@ -100,6 +46,9 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
         keepLargest,
       });
       setOutline(result.points);
+      if (result.points.length >= 3) {
+        canvasWrapperRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
       if (result.points.length < 3) {
         setWarning("No se detectó un contorno cerrado. Ajusta el umbral o prueba a cerrar huecos.");
       } else if (result.touchesBorder) {
@@ -126,7 +75,7 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
             <h2 className="text-lg font-bold text-slate-800">Detecta el contorno de la pieza</h2>
             <p className="mt-1 text-sm text-slate-600">
               Haz clic dentro de la pieza y pulsa «Detectar contorno». Ajusta la sensibilidad si la
-              línea no se cierra bien.
+              línea no se cierra bien. Después, arrastra los puntos blancos para corregir el contorno.
             </p>
             <p className="mt-2 text-xs text-slate-500">
               Si el fondo es oscuro, desactiva «Aislar el contorno principal».
@@ -134,13 +83,26 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
           </div>
         </div>
 
-        <canvas
-          ref={canvasRef}
-          width={CANVAS_WIDTH}
-          height={CANVAS_HEIGHT}
-          onClick={handleClick}
-          className="h-auto w-full cursor-crosshair rounded-xl border border-beige bg-cream"
-        />
+        <div ref={canvasWrapperRef}>
+          <OutlineCanvas
+            image={canvas}
+            outline={outline}
+            seed={seed}
+            onSeedChange={(point) => {
+              setSeed(point);
+              setWarning(null);
+            }}
+            onOutlineChange={(points) => {
+              setOutline(points);
+              setWarning(null);
+            }}
+          />
+        </div>
+        {outline.length >= 3 && (
+          <p className="mt-2 text-xs text-slate-500">
+            Arrastra los puntos blancos para ajustar el contorno.
+          </p>
+        )}
 
         <OutlineControls
           threshold={threshold}
