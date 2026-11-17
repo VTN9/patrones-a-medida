@@ -97,6 +97,18 @@ export function offsetPolygon(points: Point[], distanceCm: number): Point[] {
   });
 }
 
+export function closestPointOnSegment(point: Point, start: Point, end: Point): { point: Point; distance: number } {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSq = dx * dx + dy * dy;
+  if (lengthSq === 0) {
+    return { point: start, distance: Math.hypot(point.x - start.x, point.y - start.y) };
+  }
+  const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq));
+  const projected = { x: start.x + dx * t, y: start.y + dy * t };
+  return { point: projected, distance: Math.hypot(point.x - projected.x, point.y - projected.y) };
+}
+
 export function pointsToSvgPath(points: Point[]): string {
   if (points.length === 0) return "";
   const parts = points.map(

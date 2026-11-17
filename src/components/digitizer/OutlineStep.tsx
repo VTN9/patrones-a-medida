@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { ArrowLeft, ScanLine, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeft, ScanLine, Sparkles, Trash2 } from "lucide-react";
 import type { Calibration, Point } from "../../types/digitizer";
 import { extractOutline } from "../../services/digitizer/contour";
 import { bbox, polygonArea } from "../../services/digitizer/geometry";
@@ -25,38 +25,63 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
   const [keepLargest, setKeepLargest] = useState(true);
   const [warning, setWarning] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const autoApplyRef = useRef(false);
 
-  const handleDetect = async () => {
-    if (!seed) {
-      setWarning("Haz clic dentro de la pieza antes de detectar el contorno.");
-      return;
-    }
-    setBusy(true);
-    setWarning(null);
-    await new Promise((resolve) => setTimeout(resolve, 30));
-    try {
-      const context = canvas.getContext("2d");
-      if (!context) return;
-      const data = context.getImageData(0, 0, canvas.width, canvas.height);
-      const result = extractOutline(data, seed, {
-        threshold,
-        autoThreshold,
-        gap,
-        simplify,
-        keepLargest,
-      });
-      setOutline(result.points);
-      if (result.points.length >= 3) {
-        canvasWrapperRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  const detect = useCallback(
+    async (scroll = false) => {
+      if (!seed) {
+        setWarning("Haz clic dentro de la pieza antes de detectar el contorno.");
+        return;
       }
-      if (result.points.length < 3) {
-        setWarning("No se detectó un contorno cerrado. Ajusta el umbral o prueba a cerrar huecos.");
-      } else if (result.touchesBorder) {
-        setWarning("El contorno toca el borde de la foto. Revisa que la pieza esté completa y que el fondo no se haya colado.");
+      setBusy(true);
+      setWarning(null);
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      try {
+        const context = canvas.getContext("2d");
+        if (!context) return;
+        const data = context.getImageData(0, 0, canvas.width, canvas.height);
+        const result = extractOutline(data, seed, {
+          threshold,
+          autoThreshold,
+          gap,
+          simplify,
+          keepLargest,
+        });
+        setOutline(result.points);
+        setSelectedIndex(null);
+        if (scroll && result.points.length >= 3) {
+          canvasWrapperRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        if (result.points.length < 3) {
+          setWarning("No se detectó un contorno cerrado. Ajusta el umbral o prueba a cerrar huecos.");
+        } else if (result.touchesBorder) {
+          setWarning("El contorno toca el borde de la foto. Revisa que la pieza esté completa y que el fondo no se haya colado.");
+        }
+      } finally {
+        setBusy(false);
       }
-    } finally {
-      setBusy(false);
-    }
+    },
+    [autoThreshold, canvas, gap, keepLargest, seed, simplify, threshold]
+  );
+
+  useEffect(() => {
+    if (!autoApplyRef.current || !seed) return;
+    const timer = window.setTimeout(() => {
+      void detect(false);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [detect, seed]);
+
+  const handleDetect = () => {
+    autoApplyRef.current = true;
+    void detect(true);
+  };
+
+  const removePoint = (index: number) => {
+    if (outline.length <= 3) return;
+    setOutline((previous) => previous.filter((_, pointIndex) => pointIndex !== index));
+    setSelectedIndex(null);
   };
 
   const areaCm2 = calibration.pxPerCm > 0 ? polygonArea(outline) / calibration.pxPerCm ** 2 : 0;
@@ -88,7 +113,9 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
             image={canvas}
             outline={outline}
             seed={seed}
+            selectedIndex={selectedIndex}
             onSeedChange={(point) => {
+              autoApplyRef.current = false;
               setSeed(point);
               setWarning(null);
             }}
@@ -96,12 +123,15 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
               setOutline(points);
               setWarning(null);
             }}
+            onSelect={setSelectedIndex}
+            onRemovePoint={removePoint}
           />
         </div>
         {outline.length >= 3 && (
-          <p className="mt-2 text-xs text-slate-500">
-            Arrastra los puntos blancos para ajustar el contorno.
-          </p>
+          <div className="mt-2 space-y-1 text-xs text-slate-500">
+            <p>Arrastra los puntos para moverlos. Haz clic sobre la línea para añadir un punto.</p>
+            <p>Selecciona un punto y pulsa «Quitar punto» para eliminarlo.</p>
+          </div>
         )}
 
         <OutlineControls
@@ -132,6 +162,14 @@ export function OutlineStep({ canvas, calibration, initialOutline, onOutline, on
             <ArrowLeft size={16} /> Volver
           </button>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => selectedIndex !== null && removePoint(selectedIndex)}
+              disabled={selectedIndex === null || outline.length <= 3}
+              className="flex items-center gap-2 rounded-lg border border-beige bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-beige disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Trash2 size={16} /> Quitar punto
+            </button>
             <button
               type="button"
               onClick={handleDetect}

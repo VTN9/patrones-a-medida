@@ -45,6 +45,9 @@ export function OutlineControls({
             onChange={(event) => setThreshold(Number(event.target.value))}
             className="mt-2 w-full accent-terracotta disabled:opacity-40"
           />
+          <span className="mt-1 block text-xs font-normal text-slate-500">
+            El automático calcula el nivel de gris; desactívalo para ajustarlo a mano.
+          </span>
         </label>
         <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
           <input
@@ -65,6 +68,9 @@ export function OutlineControls({
             onChange={(event) => setGap(Number(event.target.value))}
             className="mt-2 w-full accent-terracotta"
           />
+          <span className="mt-1 block text-xs font-normal text-slate-500">
+            Engrosa las líneas para cerrar cortes del dibujo.
+          </span>
         </label>
         <label className="text-sm font-medium text-slate-700">
           Simplificar: {simplify} px
@@ -76,6 +82,9 @@ export function OutlineControls({
             onChange={(event) => setSimplify(Number(event.target.value))}
             className="mt-2 w-full accent-terracotta"
           />
+          <span className="mt-1 block text-xs font-normal text-slate-500">
+            Reduce puntos: más valor, contorno más recto.
+          </span>
         </label>
         <label className="flex items-center gap-2 text-sm font-medium text-slate-700 sm:col-span-2">
           <input
@@ -86,6 +95,9 @@ export function OutlineControls({
           />
           Aislar el contorno principal (recomendado)
         </label>
+        <p className="text-xs text-slate-500 sm:col-span-2">
+          Los ajustes se aplican automáticamente después de detectar el contorno.
+        </p>
       </div>
 
       <div className="rounded-xl border border-beige bg-cream/60 p-4 text-sm">
