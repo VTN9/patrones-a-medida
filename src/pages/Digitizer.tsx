@@ -1,3 +1,4 @@
+import { useLayoutEffect } from "react";
 import { Navbar } from "../components/layout/Navbar";
 import { StepIndicator } from "../components/digitizer/StepIndicator";
 import { UploadStep } from "../components/digitizer/UploadStep";
@@ -5,6 +6,7 @@ import { PerspectiveStep } from "../components/digitizer/PerspectiveStep";
 import { ScaleStep } from "../components/digitizer/ScaleStep";
 import { OutlineStep } from "../components/digitizer/OutlineStep";
 import { ResultStep } from "../components/digitizer/ResultStep";
+import { DigitizerGuide } from "../components/digitizer/DigitizerGuide";
 import { useDigitizer } from "../hooks/useDigitizer";
 import { createDigitizedPiece } from "../services/digitizer/createPiece";
 import { exportDigitizedPdf } from "../services/digitizer/digitizerPdf";
@@ -31,6 +33,10 @@ export function Digitizer() {
     startAnother,
   } = useDigitizer();
 
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [stage]);
+
   const handleAddPiece = (name: string, marginCm: number) => {
     if (!outline || !calibration) return;
     addPiece(createDigitizedPiece(outline, calibration.pxPerCm, name, marginCm));
@@ -47,6 +53,9 @@ export function Digitizer() {
               <p className="text-sm text-slate-600">
                 Sube una foto, corrige la perspectiva, calibra la escala y descarga un PDF a tamaño real.
               </p>
+              <a href="#guia" className="mt-2 inline-block text-sm font-medium text-terracotta hover:underline">
+                ¿Cómo funciona?
+              </a>
             </div>
             <StepIndicator stage={stage} />
           </div>
@@ -113,6 +122,8 @@ export function Digitizer() {
               onBack={() => setStage("outline")}
             />
           )}
+
+          <DigitizerGuide />
         </div>
       </div>
     </div>
