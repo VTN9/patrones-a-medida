@@ -69,7 +69,6 @@ export function OutlineCanvas({ image, outline, seed, onSeedChange, onOutlineCha
       return;
     }
     onSeedChange(toImage(point));
-    onOutlineChange([]);
   };
 
   const handleHandlePointerDown = (index: number, event: PointerEvent<HTMLButtonElement>) => {
