@@ -29,11 +29,18 @@ export interface PatternMeta {
   fabricEstimate: (medidas: Record<string, number>) => string;
 }
 
+export interface PieceShape {
+  kind: "falda";
+  waistPx: number;
+  hipDepthPx: number;
+}
+
 export interface Piece {
   id: string;
   name: string;
   cutPath: string;
   seamPath?: string;
+  shape?: PieceShape;
   labelPosition: { x: number; y: number };
   grainline: { x1: number; y1: number; x2: number; y2: number };
   notches: { x: number; y: number; angle: number }[];

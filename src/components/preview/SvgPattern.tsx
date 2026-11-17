@@ -4,6 +4,7 @@
 
 import type { PatternResult } from "../../types";
 import { cmToPx } from "../../utils/units";
+import { faldaSeamPath } from "../../utils/patternShapes";
 
 interface SvgPatternProps {
   result: PatternResult;
@@ -26,7 +27,10 @@ export function SvgPattern({ result, showSeamAllowance, seamAllowanceCm }: SvgPa
       {pieces.map((piece) => (
         <g key={piece.id} className="piece-group">
           <path d={piece.cutPath} fill="none" stroke="#1a1a1a" strokeWidth="2" className="cut-line" />
-          {showMargin && piece.width > marginPx * 2 && piece.height > marginPx * 2 && (
+          {showMargin && piece.shape?.kind === "falda" && (
+            <path d={faldaSeamPath(piece, marginPx)} fill="none" stroke="#7a8b6f" strokeWidth="1" strokeDasharray="4" className="seam-line" />
+          )}
+          {showMargin && !piece.shape && piece.width > marginPx * 2 && piece.height > marginPx * 2 && (
             <rect
               x={piece.x + marginPx}
               y={piece.y + marginPx}

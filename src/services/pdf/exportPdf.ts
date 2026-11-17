@@ -3,10 +3,10 @@
 // ============================================================================
 
 import jsPDF from "jspdf";
-import type { PatternResult } from "../../types";
+import type { PatternResult, Piece } from "../../types";
 import { formatDate } from "../../utils/format";
+import { drawSvgPath } from "./drawPath";
 
-const MM_PER_CM = 10;
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
 const MARGIN_MM = 15;
@@ -49,20 +49,21 @@ function addCoverPage(doc: jsPDF, patternName: string, category: string, measure
   doc.text("Imprime al 100% de escala (sin ajustar a página).", MARGIN_MM, pageH - 15);
 }
 
-function addPatternPages(doc: jsPDF, pieces: any[], margenCosturaCm: number): void {
+function addPatternPages(doc: jsPDF, pieces: Piece[], margenCosturaCm: number): void {
   const pageW = A4_WIDTH_MM; const pageH = A4_HEIGHT_MM;
   let currentX = MARGIN_MM; let currentY = MARGIN_MM;
   for (const piece of pieces) {
     const wMm = piece.width * PX_TO_MM; const hMm = piece.height * PX_TO_MM;
     if (currentX + wMm > pageW - MARGIN_MM) { currentX = MARGIN_MM; currentY += hMm + 20; }
     if (currentY + hMm > pageH - MARGIN_MM) { doc.addPage(); currentX = MARGIN_MM; currentY = MARGIN_MM; }
-    doc.setDrawColor(20, 20, 20); doc.setLineWidth(0.7);
-    doc.rect(currentX, currentY, wMm, hMm, "S");
-    const seamOffsetMm = margenCosturaCm * MM_PER_CM;
-    if (wMm > seamOffsetMm * 2 && hMm > seamOffsetMm * 2) {
+    if (margenCosturaCm > 0 && piece.seamPath) {
       doc.setDrawColor(122, 139, 111); doc.setLineWidth(0.3);
-      doc.rect(currentX + seamOffsetMm, currentY + seamOffsetMm, wMm - seamOffsetMm * 2, hMm - seamOffsetMm * 2, "S");
+      doc.setLineDashPattern([1.5, 1.5], 0);
+      drawSvgPath(doc, piece.seamPath, piece.x, piece.y, PX_TO_MM, currentX, currentY);
+      doc.setLineDashPattern([], 0);
     }
+    doc.setDrawColor(20, 20, 20); doc.setLineWidth(0.7);
+    drawSvgPath(doc, piece.cutPath, piece.x, piece.y, PX_TO_MM, currentX, currentY);
     doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.setTextColor(122, 139, 111);
     doc.text(piece.name, currentX + wMm / 2, currentY + hMm / 2, { align: "center" });
     doc.setDrawColor(201, 106, 74); doc.setLineWidth(0.5);
