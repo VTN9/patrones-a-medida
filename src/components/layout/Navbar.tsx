@@ -2,7 +2,7 @@
 // Componente: Barra de navegación superior
 // ============================================================================
 
-import { Home, FileText, Info } from "lucide-react";
+import { Home, FileText, Info, ScanLine } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Navbar() {
@@ -23,6 +23,9 @@ export function Navbar() {
         </Link>
         <Link to="/medidas" className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-terracotta hover:bg-terracottaDark transition text-white text-sm font-medium">
           <FileText size={16} /> Mis medidas
+        </Link>
+        <Link to="/digitalizar" className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-sage text-white hover:bg-sageDark transition text-sm font-medium">
+          <ScanLine size={16} /> Digitalizar
         </Link>
         <Link to="/como-tomar-medidas" className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-beige hover:bg-beige transition text-slate-800 text-sm font-medium">
           <Info size={16} /> Guía de medidas

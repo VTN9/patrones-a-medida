@@ -7,6 +7,7 @@ import { Home } from "./pages/Home";
 import { PatternSelector } from "./pages/PatternSelector";
 import { Measurements } from "./pages/Measurements";
 import { Preview } from "./pages/Preview";
+import { Digitizer } from "./pages/Digitizer";
 import { HowToMeasure } from "./components/guides/HowToMeasure";
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -19,6 +20,7 @@ function App() {
         <Route path="/selector" element={<PatternSelector />} />
         <Route path="/medidas" element={<Measurements />} />
         <Route path="/preview" element={<Preview />} />
+        <Route path="/digitalizar" element={<Digitizer />} />
         <Route path="/como-tomar-medidas" element={<HowToMeasure />} />
       </Routes>
     </BrowserRouter>

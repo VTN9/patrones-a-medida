@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { Link } from "react-router-dom";
-import { Scissors, FileText, Download } from "lucide-react";
+import { Scissors, FileText, Download, ScanLine } from "lucide-react";
 
 export function Home() {
   return (
@@ -27,6 +27,22 @@ export function Home() {
               <FileText size={20} /> Crear patrón de neceser
             </Link>
           </div>
+        </div>
+      </section>
+      <section className="py-10 px-6">
+        <div className="max-w-3xl mx-auto bg-white border border-beige rounded-2xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row md:items-center gap-6">
+          <div className="w-14 h-14 rounded-xl bg-sage/15 text-sageDark flex items-center justify-center shrink-0">
+            <ScanLine size={28} />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-slate-800 mb-1">¿Tienes un patrón en papel?</h2>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Súbelo en una foto, endereza la perspectiva, calibra la escala y descarga un PDF a tamaño real listo para imprimir.
+            </p>
+          </div>
+          <Link to="/digitalizar" className="px-6 py-3 rounded-xl bg-sage text-white font-medium hover:bg-sageDark transition text-center shrink-0">
+            Digitalizar patrón
+          </Link>
         </div>
       </section>
       <section className="py-16 px-6">
